@@ -34,26 +34,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST"){
     if (empty($price)){
         $errors[] = "You need to provide a price";
     }
-    // if there are no errors, execute this code
     if(empty($errors)){
         // check if a new image was provided
         if(!empty($_FILES['image']['tmp_name'])){
             $image = $_FILES['image'];
-            // ?? null; // ***** i think we don't need the ?? null statement, but it's doing no harm i guess
-        }
-        // if the image exists, save it somewhere
-        if($image != null){  // ***** I THINK WE CAN JUST SAY IF $IMAGE, NO NEED FOR NOT NULL - in fact... we only create the $image variable in the condition above, so why check for it again?
-            // check if there is an image dir and make one if not
             if(!is_dir('images')){
                 mkdir('images');
             }
-            // make a unique path for the image
+            // make a unique path for the image, make directory, and move the image there
             $image_path = 'images/'. random_string(8). '/'. $image['name'];
-            // make directory for the unique path
             mkdir(dirname($image_path));
-            // get the temp location and save it in a new file and location
             move_uploaded_file($image['tmp_name'], $image_path);
+            // update the image in the database
+            $statement = $pdo->prepare("UPDATE products SET image = :image WHERE id = :id");
+            $statement->bindValue(':image', $image_path);
+            $statement->bindValue(':id', $id);
+            $statement->execute();
         }
+      
         // make the intertions to the db
         $statement = $pdo->prepare("UPDATE products SET title = :title, description = :description, price = :price WHERE id = :id");
         $statement->bindValue(':title', $title);
@@ -61,14 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST"){
         $statement->bindValue(':price', $price);
         $statement->bindValue(':id', $id);
         $statement->execute();
-
-        if($image != null){
-            $statement = $pdo->prepare("UPDATE products SET image = :image WHERE id = :id");
-            $statement->bindValue(':image', $image_path);
-            $statement->bindValue(':id', $id);
-            $statement->execute();
-        }
-
+        // redirect to the index page
         header('Location: index.php');
     };
 };
@@ -107,11 +98,10 @@ function random_string($n){
                 <label class="form-label">Product Image</label>
                 <br>
                 <input type="file" name="image">
-                <!-- <br> -->
             </div>
             <div class="mb-3">
                 <label class="form-label">Product Title</label>
-                <input type="text" name="title" value="<?php echo $title ?>" class="form-control">
+                <input type="text" name="title" value="<?php echo $title ?>" class="form-control" autocomplete="off">
             </div>
             <div class="mb-3">
                 <label class="form-label">Description</label>

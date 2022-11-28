@@ -49,11 +49,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST"){
         $statement->bindValue(':create_date', $date);
         $statement->execute();
 
-        // *** this was to clear the form, but I think we don't need to anymore since we now redirect to the index below ***
-        // $title = '';
-        // $description = '';
-        // $price = '';
-        // redirect to index page
         header('Location: index.php');
     };
 };
@@ -92,7 +87,6 @@ function random_string($n){
                 <label class="form-label">Product Image</label>
                 <br>
                 <input type="file" name="image">
-                <!-- <br> -->
             </div>
             <div class="mb-3">
                 <label class="form-label">Product Title</label>
